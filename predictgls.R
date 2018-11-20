@@ -7,7 +7,7 @@ library(nlme)
 predictgls <- function(glsobj,newdframe){
   ## Get point predictions of new data frame
   ## Need to break apart formula, remove response then rebuild formula
-  the.form <- as.formula(as.formula(glsobj$call$model))
+  the.form <- as.formula(glsobj$call$model)
   the.terms <- terms(the.form,data=newdframe)
   the.terms <- delete.response(the.terms)
   the.form <- as.formula(paste0(the.terms))
