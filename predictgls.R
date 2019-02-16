@@ -25,11 +25,20 @@ predictgls <- function(glsobj,newdframe){
     ## Get Parameters of Variance structure
     var.pars <- coef(glsobj$modelStruct$varStruct,unconstrained=FALSE)
     
-    ## Initialize var matrix using joint data frame
-    var.call <- deparse(glsobj$call$weights)
-    var.call <- paste(substr(var.call,1,nchar(var.call)-1),", value = c(",
+    ## If fixed variance structure then there will be no parameters
+    if(length(var.pars)==0){
+      ## Initialize var matrix using joint data frame
+      var.call <- deparse(glsobj$call$weights)
+      
+    } else {
+      ## Initialize var matrix using joint data frame
+      var.call <- deparse(glsobj$call$weights)
+      var.call <- paste(substr(var.call,1,nchar(var.call)-1),", value = c(",
                       paste(paste(names(var.pars),as.character(var.pars),sep="="),
                             collapse=","),"))")
+    }
+      
+    #Initialize weights
     varMat.i <- Initialize(eval(parse(text=var.call)),data=jdframe)
     
     ## Create the SD weights
