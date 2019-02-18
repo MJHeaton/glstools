@@ -4,7 +4,14 @@ library(nlme)
 ## Function to predict with gls correctly ##
 ## by exploiting correlation              ##
 ############################################
-predictgls <- function(glsobj,newdframe){
+predictgls <- function(glsobj, newdframe=NULL, level=0.95){
+  
+  ## If no new dataframe provided, used the dataframe from glsobj
+  data.char <- as.character(glsobj$call$data)
+  if(is.null(newdframe)){
+    newdframe <- get(data.char)
+  }
+  
   ## Get point predictions of new data frame
   ## Need to break apart formula, remove response then rebuild formula
   the.form <- as.formula(glsobj$call$model)
@@ -15,7 +22,6 @@ predictgls <- function(glsobj,newdframe){
   predVals <- c(Xpred%*%glsobj$coefficients)
   
   ## Create a joint dataframe of observed and predicted data
-  data.char <- as.character(glsobj$call$data)
   jdframe <- rbind(get(data.char)[names(newdframe)],newdframe)
   
   ## If original model has a variance structure then construct the diagonal
@@ -51,8 +57,8 @@ predictgls <- function(glsobj,newdframe){
     
     ## No variance model structure then weights are all 1
     norig <- nrow(get(data.char))
-    W1 <- rep(1,norig)
-    W2 <- rep(1,nrow(jdframe)-norig)
+    W1 <- rep(1,norig)/glsobj$sigma
+    W2 <- rep(1,nrow(jdframe)-norig)/glsobj$sigma
     
   } ## End if("varStruct"%in%names(glsobj$modelStruct))
   
@@ -109,6 +115,16 @@ predictgls <- function(glsobj,newdframe){
     allpreds.se <- (1/W2)*rep(1,nrow(newdframe))
   }#End if "corStruct"%in%names(glsobj$modelStruct) statement
   
+  ## Calculate upper and lower interval limits
+  alpha <- 1-level
+  n <- nrow(get(data.char))
+  P <- length(coef(glsobj))
+  low <- allpreds - qt(1-alpha/2, df=n-P)*glsobj$sigma*allpreds.se
+  up <- allpreds + qt(1-alpha/2, df=n-P)*glsobj$sigma*allpreds.se
+  
   ## Return the predictions and predictive SE
-  return(cbind(newdframe,data.frame(Prediction=allpreds,SE.pred=glsobj$sigma*allpreds.se)))
+  return(cbind(newdframe,data.frame(Prediction=allpreds,
+                                    SE.pred=glsobj$sigma*allpreds.se,
+                                    lwr=low,
+                                    upr=up)))
 }
