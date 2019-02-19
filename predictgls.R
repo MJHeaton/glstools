@@ -57,8 +57,8 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
     
     ## No variance model structure then weights are all 1
     norig <- nrow(get(data.char))
-    W1 <- rep(1,norig)/glsobj$sigma
-    W2 <- rep(1,nrow(jdframe)-norig)/glsobj$sigma
+    W1 <- rep(1,norig)
+    W2 <- rep(1,nrow(jdframe)-norig)
     
   } ## End if("varStruct"%in%names(glsobj$modelStruct))
   
@@ -116,6 +116,9 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
   }#End if "corStruct"%in%names(glsobj$modelStruct) statement
   
   ## Calculate upper and lower interval limits
+  if(level>1){
+    level <- level/100
+  }
   alpha <- 1-level
   n <- nrow(get(data.char))
   P <- length(coef(glsobj))
