@@ -20,6 +20,7 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
   the.form <- as.formula(paste0(the.terms))
   Xpred <- model.matrix(the.form,model.frame(the.terms,data=newdframe,na.action="na.pass"))
   predVals <- c(Xpred%*%glsobj$coefficients)
+  var.from.bhat <- diag(Xpred%*%vcov(glsobj)%*%t(Xpred)/(sigma(glsobj)^2))
   
   ## Create a joint dataframe of observed and predicted data
   jdframe <- rbind(get(data.char)[names(newdframe)],newdframe)
@@ -116,18 +117,19 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
   }#End if "corStruct"%in%names(glsobj$modelStruct) statement
   
   ## Calculate upper and lower interval limits
+  allpreds.se <- glsobj$sigma*sqrt(allpreds.se^2 + var.from.bhat)
   if(level>1){
     level <- level/100
   }
   alpha <- 1-level
   n <- nrow(get(data.char))
   P <- length(coef(glsobj))
-  low <- allpreds - qt(1-alpha/2, df=n-P)*glsobj$sigma*allpreds.se
-  up <- allpreds + qt(1-alpha/2, df=n-P)*glsobj$sigma*allpreds.se
+  low <- allpreds - qt(1-alpha/2, df=n-P)*allpreds.se
+  up <- allpreds + qt(1-alpha/2, df=n-P)*allpreds.se
   
   ## Return the predictions and predictive SE
   return(cbind(newdframe,data.frame(Prediction=allpreds,
-                                    SE.pred=glsobj$sigma*allpreds.se,
+                                    SE.pred=allpreds.se,
                                     lwr=low,
                                     upr=up)))
 }
