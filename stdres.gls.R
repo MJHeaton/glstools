@@ -23,7 +23,7 @@ stdres.gls <- function(glsobj){
     cor.call <- deparse(glsobj$call$correlation)
     cor.call <- paste(substr(cor.call,1,nchar(cor.call)-1),", value = c(",
                       paste(as.character(cor.pars),collapse=","),"),fixed=TRUE)")
-    R <- Initialize(eval(parse(text=cor.call)),data=get(data.char)) %>% corMatrix()
+    R <- corMatrix(Initialize(eval(parse(text=cor.call)),data=get(data.char)))
     if(is.null(glsobj$groups) | length(unique(glsobj$group))==1){
       decorr.resid <- as.numeric(solve(t(chol(R)))%*%glsobj$residuals)*Dinv
     } else {
