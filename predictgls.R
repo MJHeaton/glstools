@@ -7,6 +7,7 @@ library(nlme)
 predictgls <- function(glsobj, newdframe=NULL, level=0.95){
   
   ## If no new dataframe provided, used the dataframe from glsobj
+  ## and create a joint dataframe
   data.char <- as.character(glsobj$call$data)
   if(is.null(newdframe)){
     newdframe <- get(data.char)
@@ -22,7 +23,7 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
   predVals <- c(Xpred%*%glsobj$coefficients)
   var.from.bhat <- diag(Xpred%*%vcov(glsobj)%*%t(Xpred)/(sigma(glsobj)^2))
   
-  ## Create a joint dataframe of observed and predicted data
+  ## Create a joint data frame
   jdframe <- rbind(get(data.char)[names(newdframe)],newdframe)
   
   ## If original model has a variance structure then construct the diagonal
@@ -66,17 +67,25 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
   ## If original model has correlation structure then construct joint
   ## correlation matrix and calculate conditional correlation matrix
   if("corStruct"%in%names(glsobj$modelStruct)){
-    ## Get Parameters of correlation structure
+    ## Get Parameters and call for correlation structure
     cor.pars <- coef(glsobj$modelStruct$corStruct,unconstrained=FALSE)
+    cor.call <- deparse(glsobj$call$correlation)
+    cor.call <- paste(substr(cor.call,1,nchar(cor.call)-1),", value = c(",
+                      paste(as.character(cor.pars),collapse=","),"),fixed=TRUE)")
+    cor.covar <- model.matrix(attr(eval(parse(text=cor.call)), "formula"), data=jdframe)
     if(as.character(glsobj$call$correlation)[1]=='corSymm'){
       warning(paste("The general correlation structure corSymm() cannot be used",
-              "for prediction.  Returning point prediction without correlation."))
-      return(cbind(newdframe,data.frame(Prediction=predVals)))
+              "for prediction.  Returning prediction without correlation."))
+      allpreds <- predVals
+      allpreds.se <- (1/W2)*rep(1,nrow(newdframe))
+    } else if(any(duplicated(cor.covar))){
+      warning(paste("Some prediction locations are the same as observed locations",
+                    "resulting in a singular correlation matrix.",
+                     "Returning prediction without correlation."))
+      allpreds <- predVals
+      allpreds.se <- (1/W2)*rep(1,nrow(newdframe))
     } else {
       ## Initialize joint correlation matrix using joint data frame
-      cor.call <- deparse(glsobj$call$correlation)
-      cor.call <- paste(substr(cor.call,1,nchar(cor.call)-1),", value = c(",
-                      paste(as.character(cor.pars),collapse=","),"),fixed=TRUE)")
       corMat.i <- Initialize(eval(parse(text=cor.call)),data=jdframe)
       
       ## If there are no groups (all data belong to same group) then create a joint
