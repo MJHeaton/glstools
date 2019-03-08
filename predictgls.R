@@ -4,7 +4,7 @@ library(nlme)
 ## Function to predict with gls correctly ##
 ## by exploiting correlation              ##
 ############################################
-predictgls <- function(glsobj, newdframe=NULL, level=0.90){
+predictgls <- function(glsobj, newdframe=NULL, level=0.95){
   
   ## If no new dataframe provided, used the dataframe from glsobj
   ## and create a joint dataframe

@@ -1,4 +1,4 @@
-stdres.gls <- function(glsobj2){
+stdres.gls <- function(glsobj){
   
   ## Dataset
   data.char <- as.character(glsobj$call$data)
