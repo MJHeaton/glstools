@@ -8,10 +8,13 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
   
   ## If no new dataframe provided, used the dataframe from glsobj
   ## and create a joint dataframe
-  data.char <- as.character(glsobj$call$data)
   if(is.null(newdframe)){
     newdframe <- get(data.char)
   }
+  n <- nrow(eval(glsobj$call$data))
+  
+  ## Create a joint data frame
+  jdframe <- rbind(eval(glsobj$call$data)[names(newdframe)],newdframe)
   
   ## Get point predictions of new data frame
   ## Need to break apart formula, remove response then rebuild formula
@@ -19,12 +22,10 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
   the.terms <- terms(the.form,data=newdframe)
   the.terms <- delete.response(the.terms)
   the.form <- as.formula(paste0(the.terms))
-  Xpred <- model.matrix(the.form,model.frame(the.terms,data=newdframe,na.action="na.pass"))
+  Xpred <- model.matrix(the.form,model.frame(the.form,data=jdframe,na.action="na.pass"))
+  Xpred <- matrix(Xpred[(n+1):(nrow(jdframe)),], ncol=ncol(Xpred))
   predVals <- c(Xpred%*%glsobj$coefficients)
   var.from.bhat <- diag(Xpred%*%vcov(glsobj)%*%t(Xpred)/(sigma(glsobj)^2))
-  
-  ## Create a joint data frame
-  jdframe <- rbind(get(data.char)[names(newdframe)],newdframe)
   
   ## If original model has a variance structure then construct the diagonal
   ## matrices accordingly
@@ -58,9 +59,8 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
   } else {
     
     ## No variance model structure then weights are all 1
-    norig <- nrow(get(data.char))
-    W1 <- rep(1,norig)
-    W2 <- rep(1,nrow(jdframe)-norig)
+    W1 <- rep(1,n)
+    W2 <- rep(1,nrow(jdframe)-n)
     
   } ## End if("varStruct"%in%names(glsobj$modelStruct))
   
@@ -92,12 +92,11 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
       ## correlation matrix.  If there are groups (each group independent) then loop
       ## through the groups calculating correlation each time.
       if(is.null(glsobj$groups) | length(unique(glsobj$group))==1){
-        norig <- nrow(get(data.char))
         corMats <- corMatrix(corMat.i)
         nr <- nrow(corMats)
-        predMat <- corMats[(norig+1):nr,1:norig]%*%chol2inv(chol(corMats[(1:norig),(1:norig)]))
+        predMat <- corMats[(n+1):nr,1:n]%*%chol2inv(chol(corMats[(1:n),(1:n)]))
         allpreds <- predVals+(1/W2)*(predMat%*%(glsobj$residuals*W1))
-        allpreds.se <- (1/W2)*sqrt((1-rowSums(predMat*corMats[(norig+1):nr,1:norig])))
+        allpreds.se <- (1/W2)*sqrt((1-rowSums(predMat*corMats[(n+1):nr,1:n])))
       } else {
         pred.grps <- sort(getGroups(newdframe,form=as.formula(glsobj$call$correlation$form)))
         ugrps <- as.character(unique(pred.grps))
@@ -131,7 +130,6 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
     level <- level/100
   }
   alpha <- 1-level
-  n <- nrow(get(data.char))
   P <- length(coef(glsobj))
   low <- allpreds - qt(1-alpha/2, df=n-P)*allpreds.se
   up <- allpreds + qt(1-alpha/2, df=n-P)*allpreds.se
