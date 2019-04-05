@@ -9,7 +9,7 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
   ## If no new dataframe provided, used the dataframe from glsobj
   ## and create a joint dataframe
   if(is.null(newdframe)){
-    newdframe <- get(data.char)
+    newdframe <- eval(glsobj$call$data)
   }
   n <- nrow(eval(glsobj$call$data))
   
@@ -51,10 +51,9 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
     varMat.i <- Initialize(eval(parse(text=var.call)),data=jdframe)
     
     ## Create the SD weights
-    norig <- nrow(get(data.char))
     W <- varWeights(varMat.i)
-    W1 <- W[1:norig]
-    W2 <- W[-(1:norig)]
+    W1 <- W[1:n]
+    W2 <- W[-(1:n)]
     
   } else {
     
