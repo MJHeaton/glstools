@@ -1,8 +1,5 @@
 stdres.gls <- function(glsobj){
   
-  ## Dataset
-  data.char <- as.character(glsobj$call$data)
-  
   ## If original model has a variance structure then construct the diagonal
   ## matrices accordingly
   if("varStruct"%in%names(glsobj$modelStruct)){
@@ -12,7 +9,7 @@ stdres.gls <- function(glsobj){
   } else {
     
     ## No variance model structure then weights are all 1
-    norig <- nrow(get(data.char))
+    norig <- nrow(eval(glsobj$call$data))
     Dinv <- rep(1,norig)*(1/sigma(glsobj))
 
   } ## End if("varStruct"%in%names(glsobj$modelStruct))
@@ -23,7 +20,7 @@ stdres.gls <- function(glsobj){
     cor.call <- deparse(glsobj$call$correlation)
     cor.call <- paste(substr(cor.call,1,nchar(cor.call)-1),", value = c(",
                       paste(as.character(cor.pars),collapse=","),"),fixed=TRUE)")
-    R <- corMatrix(Initialize(eval(parse(text=cor.call)),data=get(data.char)))
+    R <- corMatrix(Initialize(eval(parse(text=cor.call)),data=eval(glsobj$call$data)))
     if(is.null(glsobj$groups) | length(unique(glsobj$group))==1){
       decorr.resid <- as.numeric(solve(t(chol(R)))%*%glsobj$residuals)*Dinv
     } else {
