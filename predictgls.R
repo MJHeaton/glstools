@@ -22,8 +22,22 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
   the.terms <- terms(the.form,data=newdframe)
   the.terms <- delete.response(the.terms)
   the.form <- as.formula(paste0(the.terms))
-  Xpred <- model.matrix(the.form,model.frame(the.form,data=jdframe,na.action="na.pass"))
-  Xpred <- matrix(Xpred[(n+1):(nrow(jdframe)),], ncol=ncol(Xpred))
+  the.vars <- all.vars(the.form)
+  the.fx <- attr(the.terms, "term.labels")
+  if(length(the.vars)>0){
+    Xpred <- lapply(1:length(all.vars), function(x){
+      if(substr(the.fx[x], 1, 2)%in%c("ns", "bs", "poly")){
+        Xbase <- with(eval(glsobj$call$data), eval(parse(text=the.fx[x])))
+        xp <- predict(Xbase, newx=newdframe[[the.vars[x]]])
+      } else {
+        xp <- newdframe[[the.vars[x]]]
+      }
+      return(xp)
+    })
+    Xpred <- cbind(1, do.call("cbind", Xpred))
+  } else {
+    Xpred <- matrix(1, ncol=1, nrow=nrow(newdframe))
+  }
   predVals <- c(Xpred%*%glsobj$coefficients)
   var.from.bhat <- diag(Xpred%*%vcov(glsobj)%*%t(Xpred)/(sigma(glsobj)^2))
   
@@ -91,7 +105,7 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
       ## correlation matrix.  If there are groups (each group independent) then loop
       ## through the groups calculating correlation each time.
       if(is.null(glsobj$groups) | length(unique(glsobj$group))==1){
-        corMats <- corMatrix(corMat.i)
+        corMats <- corMatrix(corMat.i, corr=TRUE)
         nr <- nrow(corMats)
         predMat <- corMats[(n+1):nr,1:n]%*%chol2inv(chol(corMats[(1:n),(1:n)]))
         allpreds <- predVals+(1/W2)*(predMat%*%(glsobj$residuals*W1))

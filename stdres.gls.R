@@ -16,18 +16,23 @@ stdres.gls <- function(glsobj){
   
   if("corStruct"%in%names(glsobj$modelStruct)){
     
-    cor.pars <- coef(glsobj$modelStruct$corStruct,unconstrained=FALSE)
-    cor.call <- deparse(glsobj$call$correlation)
-    cor.call <- paste(substr(cor.call,1,nchar(cor.call)-1),", value = c(",
-                      paste(as.character(cor.pars),collapse=","),"),fixed=TRUE)")
-    R <- corMatrix(Initialize(eval(parse(text=cor.call)),data=eval(glsobj$call$data)))
+    # cor.pars <- coef(glsobj$modelStruct$corStruct,unconstrained=FALSE)
+    # cor.call <- deparse(glsobj$call$correlation)
+    # cor.call <- paste(substr(cor.call,1,nchar(cor.call)-1),", value = c(",
+    #                   paste(as.character(cor.pars),collapse=","),"),fixed=TRUE)")
+    # Linv <- corMatrix(Initialize(eval(parse(text=cor.call)),
+    #                              data=eval(glsobj$call$data)), 
+    #                   corr=FALSE)
+    Linv <- corMatrix(glsobj$modelStruct$corStruct, corr=FALSE)
     if(is.null(glsobj$groups) | length(unique(glsobj$group))==1){
-      decorr.resid <- as.numeric(solve(t(chol(R)))%*%glsobj$residuals)*Dinv
+      #decorr.resid <- as.numeric(solve(t(chol(R)))%*%glsobj$residuals)*Dinv
+      decorr.resid <- as.numeric(Linv%*%glsobj$residuals)*Dinv
     } else {
       
       resid.list <- base::split(residuals(glsobj), getGroups(glsobj))
       decorr.resid <- sapply(1:length(resid.list), function(gind){
-        as.numeric(solve(t(chol(R[[gind]])))%*%resid.list[[gind]])
+        #as.numeric(solve(t(chol(R[[gind]])))%*%resid.list[[gind]])
+        as.numeric(L[[gind]]%*%resid.list[[gind]])
       })
       decorr.resid <- c(decorr.resid)*Dinv
       
