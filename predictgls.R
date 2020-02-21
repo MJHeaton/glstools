@@ -23,7 +23,9 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
   the.terms <- delete.response(the.terms)
   the.form <- as.formula(paste0(the.terms))
   the.vars <- all.vars(the.form, unique=FALSE)
-  the.vars <- the.vars[!the.vars==the.vars[duplicated(the.vars)]]
+  if(any(duplicated(the.vars))){
+    the.vars <- the.vars[!the.vars==the.vars[duplicated(the.vars)]]
+  }
   the.fx <- attr(the.terms, "term.labels")
   if(length(the.vars)>0){
     Xpred <- lapply(1:length(the.vars), function(x){
