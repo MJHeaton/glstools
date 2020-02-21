@@ -22,15 +22,17 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
   the.terms <- terms(the.form,data=newdframe)
   the.terms <- delete.response(the.terms)
   the.form <- as.formula(paste0(the.terms))
-  the.vars <- all.vars(the.form)
+  the.vars <- all.vars(the.form, unique=FALSE)
+  the.vars <- the.vars[!the.vars==the.vars[duplicated(the.vars)]]
   the.fx <- attr(the.terms, "term.labels")
   if(length(the.vars)>0){
-    Xpred <- lapply(1:length(all.vars), function(x){
+    Xpred <- lapply(1:length(the.vars), function(x){
       if(substr(the.fx[x], 1, 2)%in%c("ns", "bs", "poly")){
         Xbase <- with(eval(glsobj$call$data), eval(parse(text=the.fx[x])))
         xp <- predict(Xbase, newx=newdframe[[the.vars[x]]])
       } else {
-        xp <- newdframe[[the.vars[x]]]
+        tf <- as.formula(paste0("~", the.fx[x]))
+        xp <- matrix(c(model.matrix(tf, data=newdframe)[,-1]), nrow=nrow(newdframe))
       }
       return(xp)
     })
