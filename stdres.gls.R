@@ -32,7 +32,7 @@ stdres.gls <- function(glsobj){
       resid.list <- base::split(residuals(glsobj), getGroups(glsobj))
       decorr.resid <- sapply(1:length(resid.list), function(gind){
         #as.numeric(solve(t(chol(R[[gind]])))%*%resid.list[[gind]])
-        as.numeric(L[[gind]]%*%resid.list[[gind]])
+        as.numeric(Linv[[gind]]%*%resid.list[[gind]])
       })
       decorr.resid <- c(decorr.resid)*Dinv
       
