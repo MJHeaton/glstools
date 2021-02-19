@@ -21,7 +21,7 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
   the.form <- as.formula(glsobj$call$model)
   the.terms <- terms(the.form,data=newdframe)
   the.terms <- delete.response(the.terms)
-  the.form <- as.formula(paste0(the.terms))
+  the.form <- as.formula(paste0(the.terms, collapse=""))
   the.fx <- attr(the.terms, "term.labels")
   the.vars <- sapply(1:length(the.fx), function(trm){
     vn <- all.vars(as.formula(paste0("~",the.fx[trm])))
