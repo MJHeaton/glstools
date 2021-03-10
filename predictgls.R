@@ -34,9 +34,13 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
     })
   if(length(the.fx)>0){
     Xpred <- lapply(1:length(the.vars), function(x){
-      if(substr(the.fx[x], 1, 2)%in%c("ns", "bs", "poly")){
+      if(sub("*\\(.*", "", the.fx[x])%in%c("ns", "bs", "poly")){
         Xbase <- with(eval(glsobj$call$data), eval(parse(text=the.fx[x])))
-        xp <- predict(Xbase, newx=newdframe[[the.vars[x]]])
+        if(sub("*\\(.*", "", the.fx[x])=="poly"){
+          xp <- predict(Xbase, newdata=newdframe[[the.vars[x]]])
+        } else {
+          xp <- predict(Xbase, newx=newdframe[[the.vars[x]]])
+        }
       } else {
         tf <- as.formula(paste0("~", the.fx[x]))
         xp <- matrix(c(model.matrix(tf, data=newdframe)[,-1]), nrow=nrow(newdframe))
@@ -95,7 +99,7 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
     cor.call <- paste(substr(cor.call,1,nchar(cor.call)-1),", value = c(",
                       paste(as.character(cor.pars),collapse=","),"),fixed=TRUE)")
     cor.covar <- model.matrix(attr(eval(parse(text=cor.call)), "formula"), data=jdframe)
-    if(as.character(glsobj$call$correlation)[1]=='corSymm'){
+    if(gsub(".*:", "", as.character(glsobj$call$correlation)[1])=='corSymm'){
       warning(paste("The general correlation structure corSymm() cannot be used",
               "for prediction.  Returning prediction without correlation."))
       allpreds <- predVals
