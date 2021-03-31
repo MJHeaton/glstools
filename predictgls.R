@@ -11,7 +11,10 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
   ## If no new dataframe provided, used the dataframe from glsobj
   ## and create a joint dataframe
   if(is.null(newdframe)){
-    newdframe <- eval(glsobj$call$data)
+    # newdframe <- eval(glsobj$call$data)
+    warning(paste("No newdframe provided for prediction.",
+                  "Returning fitted values."))
+    return(fitted(glsobj))
   }
   n <- nrow(eval(glsobj$call$data))
   
@@ -41,6 +44,11 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
         } else {
           xp <- predict(Xbase, newx=newdframe[[the.vars[x]]])
         }
+      } else if(grepl(":",the.fx[x])){
+        tf <- as.formula(paste0("~", paste(the.vars[[x]], collapse="+"),
+                               "+",the.fx[x]))
+        xp <- model.matrix(tf, data=newdframe)
+        xp <- xp[,grepl(":", colnames(xp))]
       } else {
         tf <- as.formula(paste0("~", the.fx[x]))
         xp <- matrix(c(model.matrix(tf, data=newdframe)[,-1]), nrow=nrow(newdframe))
