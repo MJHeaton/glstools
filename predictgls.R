@@ -36,26 +36,46 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
     return(vn)
     })
   if(length(the.fx)>0){
-    Xpred <- lapply(1:length(the.vars), function(x){
-      if(sub("*\\(.*", "", the.fx[x])%in%c("ns", "bs", "poly")){
+    is.nonlin <- which(sapply(1:length(the.fx), function(x){
+      sub("*\\(.*", "", the.fx[x])%in%c("ns", "bs", "poly")
+    }))
+    if(length(is.nonlin)==0){
+      rest.form <- paste0(the.fx, collapse="+")
+      Xpred <- NULL
+    } else {
+      rest.form <- paste0(the.fx[-is.nonlin], collapse="+")
+      Xpred <- lapply(is.nonlin, function(x){
         Xbase <- with(eval(glsobj$call$data), eval(parse(text=the.fx[x])))
         if(sub("*\\(.*", "", the.fx[x])=="poly"){
-          xp <- predict(Xbase, newdata=newdframe[[the.vars[x]]])
+          xp <- predict(Xbase, newdata=newdframe[[unlist(the.vars[x])]])
         } else {
-          xp <- predict(Xbase, newx=newdframe[[the.vars[x]]])
+          xp <- predict(Xbase, newx=newdframe[[unlist(the.vars[x])]])
         }
-      } else if(grepl(":",the.fx[x])){
-        tf <- as.formula(paste0("~", paste(the.vars[[x]], collapse="+"),
-                               "+",the.fx[x]))
-        xp <- model.matrix(tf, data=newdframe)
-        xp <- xp[,grepl(":", colnames(xp))]
-      } else {
-        tf <- as.formula(paste0("~", the.fx[x]))
-        xp <- matrix(c(model.matrix(tf, data=newdframe)[,-1]), nrow=nrow(newdframe))
-      }
-      return(xp)
-    })
-    Xpred <- cbind(1, do.call("cbind", Xpred))
+      })
+      Xpred <- do.call("cbind", Xpred)
+    }
+    rest.form <- as.formula(paste0("~",rest.form))
+    Xpred <- cbind(model.matrix(rest.form, data=newdframe), Xpred)
+    # Xpred <- lapply(1:length(the.vars), function(x){
+    #   if(sub("*\\(.*", "", the.fx[x])%in%c("ns", "bs", "poly")){
+    #     Xbase <- with(eval(glsobj$call$data), eval(parse(text=the.fx[x])))
+    #     if(sub("*\\(.*", "", the.fx[x])=="poly"){
+    #       xp <- predict(Xbase, newdata=newdframe[[the.vars[x]]])
+    #     } else {
+    #       xp <- predict(Xbase, newx=newdframe[[the.vars[x]]])
+    #     }
+    #   } else if(grepl(":",the.fx[x])){
+    #     tf <- as.formula(paste0("~", paste(the.vars[[x]], collapse="+"),
+    #                            "+",the.fx[x]))
+    #     xp <- model.matrix(tf, data=newdframe)
+    #     xp <- xp[,grepl(":", colnames(xp))]
+    #   } else {
+    #     tf <- as.formula(paste0("~", the.fx[x]))
+    #     xp <- matrix(c(model.matrix(tf, data=newdframe)[,-1]), nrow=nrow(newdframe))
+    #   }
+    #   return(xp)
+    # })
+    # Xpred <- cbind(1, do.call("cbind", Xpred))
   } else {
     Xpred <- matrix(1, ncol=1, nrow=nrow(newdframe))
   }
