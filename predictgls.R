@@ -57,7 +57,7 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
     rest.form <- as.formula(paste0("~",rest.form))
     Xpred <- cbind(model.matrix(rest.form, data=jdframe), Xpred)
     Xpred <- Xpred[-(1:n),]
-    if(class(Xpred)=="numeric"){
+    if(class(Xpred)[1]=="numeric"){
       Xpred <- matrix(Xpred, nrow=1)
     }
     # Xpred <- lapply(1:length(the.vars), function(x){
