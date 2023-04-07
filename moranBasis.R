@@ -7,5 +7,7 @@ moranBasis <- function(X, A, tol=0.95){
   pos <- which(e$values>0)
   sel <- which(cumsum(e$values[pos])/sum(e$values[pos])<tol) #Use Tol instead
   M <- e$vectors[,pos[sel]]
+  M <- as.data.frame(M)
+  names(M) <- paste0("B", 1:ncol(M))
   return(M)
 }
