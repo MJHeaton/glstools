@@ -51,6 +51,7 @@ predictgls <- function(glsobj, newdframe=NULL, level=0.95){
         } else {
           xp <- predict(Xbase, newx=newdframe[[unlist(the.vars[x])]])
         }
+        return(rbind(Xbase,xp))
       })
       Xpred <- do.call("cbind", Xpred)
     }
