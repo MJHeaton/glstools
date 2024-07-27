@@ -31,7 +31,7 @@ devtools::install_github('https://github.com/MJHeaton/glstools')
 ## Example Usage
 
 ```{r example, eval=FALSE}
-library(glsTools)
+library(glstools)
 library(nlme)
 
 ## Fit a GLS model

@@ -22,7 +22,9 @@ Function to *correctly* predict values from a GLS model by accounting for
 variance and correlation structures.
 }
 \examples{
+\dontrun{
 my_model <- gls(y ~ x1 + x2, data = data, correlation = corSpatial(form = ~ x1 + x2))
 new_data <- data.frame(x1 = c(1, 2, 3), x2 = c(4, 5, 6))
 my_preds <- predictgls(glsobj = my_model, newdframe = new_data)
+}
 }

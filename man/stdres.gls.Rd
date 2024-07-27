@@ -16,3 +16,9 @@ Vector of standardized residuals.
 This function calculates standardized residuals for a given fitted GLS, accounting for
 variance and correlation structures that may be present in the model.
 }
+\examples{
+\dontrun{
+my_model <- gls(y ~ x1 + x2, data = data, correlation = corSpatial(form = ~ x1 + x2))
+decorr_resid <- stdres.gls(glsobj = my_model)
+}
+}

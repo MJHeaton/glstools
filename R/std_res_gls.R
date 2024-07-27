@@ -7,6 +7,12 @@
 #'
 #' @return Vector of standardized residuals.
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' my_model <- gls(y ~ x1 + x2, data = data, correlation = corSpatial(form = ~ x1 + x2))
+#' decorr_resid <- stdres.gls(glsobj = my_model)
+#' }
 
 stdres.gls <- function(glsobj) {
   ## If original model has a variance structure then construct the diagonal
@@ -18,7 +24,7 @@ stdres.gls <- function(glsobj) {
     norig <- nrow(eval(glsobj$call$data))
     Dinv <- rep(1, norig) * (1 / sigma(glsobj))
   }
-  
+
   if ("corStruct" %in% names(glsobj$modelStruct)) {
     Linv <- corMatrix(glsobj$modelStruct$corStruct, corr = FALSE)
     if (is.null(glsobj$groups) | length(unique(glsobj$group)) == 1) {

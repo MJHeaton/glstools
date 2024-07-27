@@ -10,10 +10,12 @@ library(RSpectra)
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' X <- model.matrix(~ x + y + z, data = data)
 #' A <- nb2mat(poly2nb(shape_file), style="B")
 #' M <- moranBasis(X, A, tol=0.95)
 #' moran_data <- bind_cols(data, M)
+#' }
 
 moranBasis <- function(X, A, tol = 0.95) {
   po <- (diag(nrow(X)) - X %*% chol2inv(chol(t(X) %*% X)) %*% t(X))

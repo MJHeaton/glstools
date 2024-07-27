@@ -11,13 +11,15 @@ library(nlme)
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' my_model <- gls(y ~ x1 + x2, data = data, correlation = corSpatial(form = ~ x1 + x2))
 #' new_data <- data.frame(x1 = c(1, 2, 3), x2 = c(4, 5, 6))
 #' my_preds <- predictgls(glsobj = my_model, newdframe = new_data)
+#' }
 
 
 predictgls <- function(glsobj, newdframe = NULL, level = 0.95) {
-  
+
   ## If `newdframe` not given, used the dataframe from `glsobj`
   ## and create a joint dataframe
   if (is.null(newdframe)) {
@@ -28,10 +30,10 @@ predictgls <- function(glsobj, newdframe = NULL, level = 0.95) {
     return(fitted(glsobj))
   }
   n <- nrow(eval(glsobj$call$data))
-  
+
   ## Create a joint data frame
   jdframe <- rbind(eval(glsobj$call$data)[names(newdframe)], newdframe)
-  
+
   ## Get point predictions of new data frame
   ## Need to break apart formula, remove response then rebuild formula
   the.form <- as.formula(glsobj$call$model)
@@ -72,19 +74,19 @@ predictgls <- function(glsobj, newdframe = NULL, level = 0.95) {
     if (class(Xpred)[1] == "numeric") {
       Xpred <- matrix(Xpred, nrow = 1)
     }
-    
+
   } else {
     Xpred <- matrix(1, ncol = 1, nrow = nrow(newdframe))
   }
   predVals <- c(Xpred %*% glsobj$coefficients)
   var.from.bhat <- diag(Xpred %*% vcov(glsobj) %*% t(Xpred) / (sigma(glsobj)^2))
-  
+
   ## If original model has a variance structure then construct the diagonal
   ## matrices accordingly
   if ("varStruct" %in% names(glsobj$modelStruct)) {
     ## Get Parameters of Variance structure
     var.pars <- coef(glsobj$modelStruct$varStruct, unconstrained = FALSE)
-    
+
     ## If fixed variance structure then there will be no parameters
     if (length(var.pars) == 0) {
       ## Initialize var matrix using joint data frame
@@ -99,10 +101,10 @@ predictgls <- function(glsobj, newdframe = NULL, level = 0.95) {
         ), "))"
       )
     }
-    
+
     # Initialize weights
     varMat.i <- Initialize(eval(parse(text = var.call)), data = jdframe)
-    
+
     ## Create the SD weights
     W <- varWeights(varMat.i)
     W1 <- W[1:n]
@@ -112,7 +114,7 @@ predictgls <- function(glsobj, newdframe = NULL, level = 0.95) {
     W1 <- rep(1, n)
     W2 <- rep(1, nrow(jdframe) - n)
   } ## End if("varStruct"%in%names(glsobj$modelStruct))
-  
+
   ## If original model has correlation structure then construct joint
   ## correlation matrix and calculate conditional correlation matrix
   if ("corStruct" %in% names(glsobj$modelStruct)) {
@@ -142,7 +144,7 @@ predictgls <- function(glsobj, newdframe = NULL, level = 0.95) {
     } else {
       ## Initialize joint correlation matrix using joint data frame
       corMat.i <- Initialize(eval(parse(text = cor.call)), data = jdframe)
-      
+
       ## If there are no groups (all data belong to same group) then create a joint
       ## correlation matrix.  If there are groups (each group independent) then loop
       ## through the groups calculating correlation each time.
@@ -178,7 +180,7 @@ predictgls <- function(glsobj, newdframe = NULL, level = 0.95) {
     allpreds <- predVals
     allpreds.se <- (1 / W2) * rep(1, nrow(newdframe))
   } # End if "corStruct"%in%names(glsobj$modelStruct) statement
-  
+
   ## Calculate upper and lower interval limits
   allpreds.se <- glsobj$sigma * sqrt(allpreds.se^2 + var.from.bhat)
   if (level > 1) {
@@ -188,7 +190,7 @@ predictgls <- function(glsobj, newdframe = NULL, level = 0.95) {
   P <- length(coef(glsobj))
   low <- allpreds - qt(1 - alpha / 2, df = n - P) * allpreds.se
   up <- allpreds + qt(1 - alpha / 2, df = n - P) * allpreds.se
-  
+
   ## Return the predictions and predictive SE
   return(cbind(newdframe, data.frame(
     Prediction = allpreds,
