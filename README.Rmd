@@ -1,15 +1,24 @@
+---
+output: github_document
+---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
 
 # glstools
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of glsTools is to make analysis of correlated data easier by
-providing tools to *correctly* predict and standardize *decorrelated*
-residuals from `gls` objects in R. Additional functionality to calculate
-Moran Basis functions is also provided.
+The goal of glsTools is to make analysis of correlated data easier by providing tools to *correctly* predict and standardize *decorrelated* residuals from `gls` objects in R. Additional functionality to calculate Moran Basis functions is also provided.
 
 ## Installation
 
@@ -21,7 +30,7 @@ devtools::install_github('https://github.com/MJHeaton/glstools')
 
 ## Example Usage
 
-``` r
+```{r example, eval=FALSE}
 library(glstools)
 library(nlme)
 
