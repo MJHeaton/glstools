@@ -1,0 +1,15 @@
+Package: glstools
+Type: Package
+Title: Tools for Correlated Data Analysis with GLS Models
+Version: 0.1.0
+Author: Matthew Heaton <mheaton@stat.byu.edu>
+Maintainer: Matthew Heaton <mheaton@stat.byu.edu>
+Description: 
+    The glsTools package extends the functionality of the nlme package
+    to facilitate the analysis of correlated data using Generalized Least Squares (GLS) models. 
+    It provides additional tools and functions to streamline the process of fitting and 
+    interpreting GLS models, particularly in the context of correlated data analysis.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.3.1
