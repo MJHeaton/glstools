@@ -6,7 +6,7 @@ library(nlme)
 ############################################
 
 ## Comments here
-predictgls <- function(glsobj, newdframe=NULL, level=0.95){
+predict_gls <- function(glsobj, newdata=NULL, level=0.95){
   
   ## If no new dataframe provided, used the dataframe from glsobj
   ## and create a joint dataframe
